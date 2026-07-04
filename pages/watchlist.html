@@ -7,7 +7,7 @@
     <title>Coin Radar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
@@ -15,18 +15,27 @@
         <div class="row min-vh-100">
             <div class="col-2 bg-light border-end p-4">
                 <div class="d-flex align-items-center mb-4">
-                    <img src="assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                    <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
                     <div class="fw-bold h5 mb-0 fst-italic">Coin Radar</div>
                 </div>
-                <ul class="nav flex-column">
+                <ul class="nav flex-column sidebar-nav">
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Coins</a>
+                        <a class="nav-link text-dark" href="coins.html" data-nav="coins">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Coins</span>
+                        </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Watchlist</a>
+                        <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Watchlist</span>
+                        </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Settings</a>
+                        <a class="nav-link text-dark" href="settings.html" data-nav="settings">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Settings</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -41,6 +50,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                const target = link.getAttribute('href').split('/').pop().split('?')[0].toLowerCase();
+                const isActive = currentPage === target;
+                link.classList.toggle('active', isActive);
+
+                link.addEventListener('click', (event) => {
+                    if (link.classList.contains('active')) {
+                        event.preventDefault();
+                        if (document.referrer && document.referrer !== window.location.href) {
+                            window.history.back();
+                        } else {
+                            window.location.href = link.getAttribute('href');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

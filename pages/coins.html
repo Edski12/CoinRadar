@@ -7,33 +7,66 @@
     <title>Coin Radar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <div class="col-2 bg-light border-end p-4">
+            <aside class="col-2 bg-light border-end p-4">
                 <div class="d-flex align-items-center mb-4">
-                    <img src="assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                    <div class="fw-bold h5 mb-0 fst-italic">Coin Radar</div>
+                    <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                    <div class="fw-bold h5 mb-0 fst-italic">
+                        <a href="../index.html" class="nav-link">Coin Radar</a>
+                    </div>
                 </div>
-                <ul class="nav flex-column">
+                <ul class="nav flex-column sidebar-nav">
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Coins</a>
+                        <a class="nav-link text-dark" href="Coins.html" data-nav="coins">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Coins</span>
+                        </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Watchlist</a>
+                        <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Watchlist</span>
+                        </a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link text-dark" href="#">Settings</a>
+                        <a class="nav-link text-dark" href="settings.html" data-nav="settings">
+                            <span class="nav-indicator" aria-hidden="true">←</span>
+                            <span>Settings</span>
+                        </a>
                     </li>
                 </ul>
-            </div>
+            </aside>
 
             <div class="col-9 p-4">
-                <h2 class="mb-3">Main Page</h2>
-                <p>This is where the chart/API content will be displayed.</p>
+                <h2 class="mb-3">Crypto Coins</h2>
+                <p class="text-muted">Live market data from Binance.</p>
+
+                <div class="mb-3">
+                    <input type="text" id="coinSearch" class="form-control" placeholder="Search coins..." />
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Price</th>
+                                <th>24h Change</th>
+                                <th>24h Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coinsTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -41,6 +74,89 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                const target = link.getAttribute('href').split('/').pop().split('?')[0].toLowerCase();
+                const isActive = currentPage === target;
+                link.classList.toggle('active', isActive);
+
+                link.addEventListener('click', (event) => {
+                    if (link.classList.contains('active')) {
+                        event.preventDefault();
+                        if (document.referrer && document.referrer !== window.location.href) {
+                            window.history.back();
+                        } else {
+                            window.location.href = link.getAttribute('href');
+                        }
+                    }
+                });
+            });
+        });
+
+        let allCoins = [];
+
+        function renderCoins(list) {
+            const tableBody = document.getElementById('coinsTableBody');
+
+            if (!list.length) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No matching coins found.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = list.map(item => {
+                const price = Number(item.lastPrice).toFixed(2);
+                const change = Number(item.priceChangePercent).toFixed(2);
+                const volume = Number(item.volume).toLocaleString();
+                const changeClass = change >= 0 ? 'text-success' : 'text-danger';
+
+                return `
+                    <tr class="coin-row" data-symbol="${item.symbol}" style="cursor: pointer;">
+                        <td><strong>${item.symbol}</strong></td>
+                        <td>$${price}</td>
+                        <td class="${changeClass}">${change}%</td>
+                        <td>${volume}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.coin-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const symbol = row.getAttribute('data-symbol');
+                    window.location.href = `coin-details.html?symbol=${encodeURIComponent(symbol)}`;
+                });
+            });
+        }
+
+        async function loadCoins() {
+            const tableBody = document.getElementById('coinsTableBody');
+
+            try {
+                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                if (!response.ok) throw new Error('Unable to fetch data');
+
+                const data = await response.json();
+                allCoins = data
+                    .filter(item => item.symbol.endsWith('USDT') && !item.symbol.includes('UP') && !item.symbol.includes('DOWN'))
+                    .sort((a, b) => Number(b.quoteVolume) - Number(a.quoteVolume))
+                    .slice(0, 50);
+
+                renderCoins(allCoins);
+            } catch (error) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load Binance data.</td></tr>';
+            }
+        }
+
+        document.getElementById('coinSearch').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            const filtered = allCoins.filter(item => item.symbol.toLowerCase().includes(query));
+            renderCoins(filtered);
+        });
+
+        loadCoins();
+        setInterval(loadCoins, 30000);
+    </script>
 </body>
 
 </html>

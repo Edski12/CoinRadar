@@ -3,3 +3,31 @@
 body {
     font-family: 'Poppins', sans-serif;
 }
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav .nav-indicator {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-4px);
+    transition: all 0.2s ease;
+    font-weight: 700;
+    width: 0.8rem;
+    display: inline-block;
+}
+
+.sidebar-nav .nav-link.active {
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+
+.sidebar-nav .nav-link.active .nav-indicator {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Coin Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body { background: #f8f9fa; }
+        .chart-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        #priceChart { width: 100%; height: 500px; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .tool-btn {
+            border: 1px solid #dee2e6;
+            background: #fff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tool-btn:hover { border-color: #2563eb; }
+        .tool-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .tool-btn.danger:hover { border-color: #dc3545; color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 id="coinTitle" class="mb-1">Coin</h2>
+                <p id="coinPrice" class="text-muted mb-0">Loading...</p>
+            </div>
+            <a href="#" id="backButton" class="btn btn-outline-dark">Back</a>
+        </div>
+
+        <div class="chart-box">
+            <div class="toolbar">
+                <button class="tool-btn active" data-tool="cursor">Cursor</button>
+                <button class="tool-btn" data-tool="straightLine">Trend Line</button>
+                <button class="tool-btn" data-tool="horizontalStraightLine">Horizontal</button>
+                <button class="tool-btn" data-tool="verticalStraightLine">Vertical</button>
+                <button class="tool-btn" data-tool="rectangle">Rectangle</button>
+                <button class="tool-btn" data-tool="fibonacciLine">Fib Retracement</button>
+                <button class="tool-btn danger" data-tool="clear">Clear Drawings</button>
+            </div>
+            <div id="priceChart"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const symbol = params.get('symbol') || 'BTCUSDT';
+        const title = document.getElementById('coinTitle');
+        const priceText = document.getElementById('coinPrice');
+
+        const chart = klinecharts.init('priceChart');
+        chart.setStyles({
+            candle: {
+                bar: {
+                    upColor: '#16a34a',
+                    downColor: '#dc2626',
+                    upBorderColor: '#16a34a',
+                    downBorderColor: '#dc2626',
+                    upWickColor: '#16a34a',
+                    downWickColor: '#dc2626'
+                }
+            }
+        });
+
+        function formatPrice(value) {
+            return `$${Number(value).toFixed(2)}`;
+        }
+
+        async function fetchKlines() {
+            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=15m&limit=150`);
+            if (!response.ok) throw new Error('Unable to fetch chart data');
+            const data = await response.json();
+            return data.map(item => ({
+                timestamp: item[0],
+                open: Number(item[1]),
+                high: Number(item[2]),
+                low: Number(item[3]),
+                close: Number(item[4]),
+                volume: Number(item[5])
+            }));
+        }
+
+        async function loadCoinData() {
+            try {
+                const tickerResponse = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
+                if (!tickerResponse.ok) throw new Error('Unable to fetch ticker');
+                const ticker = await tickerResponse.json();
+
+                title.textContent = symbol;
+                priceText.textContent = `${formatPrice(ticker.lastPrice)} • ${ticker.priceChangePercent}% (24h)`;
+
+                const klines = await fetchKlines();
+                chart.applyNewData(klines);
+            } catch (error) {
+                title.textContent = symbol;
+                priceText.textContent = 'Unable to load chart data.';
+            }
+        }
+
+        // Drawing toolbar
+        const toolButtons = document.querySelectorAll('.tool-btn');
+        toolButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tool = btn.dataset.tool;
+
+                if (tool === 'clear') {
+                    chart.removeOverlay();
+                    return;
+                }
+
+                toolButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (tool === 'cursor') {
+                    return; // just deselects drawing mode
+                }
+
+                chart.createOverlay(tool);
+            });
+        });
+
+        document.getElementById('backButton').addEventListener('click', function (event) {
+            event.preventDefault();
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = 'Coins.html';
+            }
+        });
+
+        loadCoinData();
+        setInterval(loadCoinData, 30000);
+    </script>
+</body>
+</html>
