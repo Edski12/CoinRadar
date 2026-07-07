@@ -8,15 +8,59 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 
 <body>
+    <!-- Mobile top navbar with burger menu (visible below lg) -->
+    <nav class="navbar navbar-light bg-light border-bottom d-lg-none">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center mb-0" href="../index.html">
+                <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2"
+                    style="width: 32px; height: 32px; object-fit: cover;">
+                <span class="fw-bold fst-italic">Coin Radar</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+                aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse" id="sidebarMenu">
+            <ul class="nav flex-column sidebar-nav p-3">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="coins.html" data-nav="coins" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Coins</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Watchlist</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="settings.html" data-nav="settings" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <div class="col-2 bg-light border-end p-4">
+            <!-- Sidebar: hidden on small screens, visible from lg up -->
+            <aside class="col-lg-2 bg-light border-end p-4 d-none d-lg-block">
                 <div class="d-flex align-items-center mb-4">
                     <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                    <div class="fw-bold h5 mb-0 fst-italic">Coin Radar</div>
+                    <div class="fw-bold h5 mb-0 fst-italic">
+                        <a href="../index.html" class="nav-link">Coin Radar</a>
+                    </div>
                 </div>
                 <ul class="nav flex-column sidebar-nav">
                     <li class="nav-item mb-2">
@@ -38,11 +82,84 @@
                         </a>
                     </li>
                 </ul>
-            </div>
+            </aside>
 
-            <div class="col-9 p-4">
-                <h2 class="mb-3">Main Page</h2>
-                <p>This is where the chart/API content will be displayed.</p>
+            <div class="col-12 col-lg-9 col-xl-9 p-3 p-lg-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h2 class="mb-1">Watchlist</h2>
+                        <p class="text-muted mb-0">Track the coins you hold and their live value.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCoinModal">
+                        + Add Coin
+                    </button>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <div class="card p-3">
+                            <div class="text-muted small">Total Portfolio Value</div>
+                            <div class="h4 mb-0" id="totalValue">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Holdings</th>
+                                <th class="d-none d-md-table-cell">Price</th>
+                                <th>Value</th>
+                                <th class="d-none d-md-table-cell">24h Change</th>
+                                <th class="d-none d-md-table-cell">24h Chart</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="watchlistTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Your watchlist is empty. Click "+ Add Coin" to get started.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Coin Modal -->
+    <div class="modal fade" id="addCoinModal" tabindex="-1" aria-labelledby="addCoinModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCoinModalLabel">Add Coin to Watchlist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: search + pick coin -->
+                    <div id="coinSelectStep">
+                        <input type="text" id="modalCoinSearch" class="form-control mb-3" placeholder="Search coins (e.g. BTC, ETH)..." autocomplete="off">
+                        <div id="modalCoinList" class="list-group" style="max-height: 300px; overflow-y: auto;">
+                            <div class="text-center text-muted py-3">Loading available coins...</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: enter amount held -->
+                    <div id="amountStep" class="d-none">
+                        <button type="button" class="btn btn-link p-0 mb-3" id="backToSearchBtn">&larr; Back to search</button>
+                        <div class="d-flex align-items-center mb-3">
+                            <strong id="selectedCoinLabel" class="h5 mb-0"></strong>
+                        </div>
+                        <label for="coinAmountInput" class="form-label">How much do you hold?</label>
+                        <input type="number" id="coinAmountInput" class="form-control" placeholder="0.00" min="0" step="any">
+                        <div class="form-text">Enter the quantity of coins you own, not a dollar value.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary d-none" id="confirmAddCoinBtn">Add to Watchlist</button>
+                </div>
             </div>
         </div>
     </div>
@@ -70,7 +187,240 @@
                 });
             });
         });
+
+        const STORAGE_KEY = 'coinRadarWatchlist';
+        let availableCoins = [];   // [{ symbol, lastPrice, priceChangePercent }]
+        let watchlist = [];        // [{ symbol, amount }]
+        let selectedSymbol = null;
+        const chartInstances = {};
+
+        function loadWatchlist() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                watchlist = raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                watchlist = [];
+            }
+        }
+
+        function saveWatchlist() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist));
+        }
+
+        async function fetchAllTickers() {
+            try {
+                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                if (!response.ok) throw new Error('Unable to fetch data');
+                const data = await response.json();
+                availableCoins = data
+                    .filter(item => item.symbol.endsWith('USDT') && !item.symbol.includes('UP') && !item.symbol.includes('DOWN'))
+                    .sort((a, b) => Number(b.quoteVolume) - Number(a.quoteVolume));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // ---------- Add Coin Modal logic ----------
+
+        function renderModalCoinList(filter = '') {
+            const listEl = document.getElementById('modalCoinList');
+            const query = filter.trim().toLowerCase();
+            const filtered = availableCoins.filter(c => c.symbol.toLowerCase().includes(query)).slice(0, 60);
+
+            if (!filtered.length) {
+                listEl.innerHTML = '<div class="text-center text-muted py-3">No coins match your search.</div>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(coin => {
+                const price = Number(coin.lastPrice).toFixed(2);
+                const change = Number(coin.priceChangePercent).toFixed(2);
+                const changeClass = change >= 0 ? 'text-success' : 'text-danger';
+                return `
+                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center modal-coin-item" data-symbol="${coin.symbol}">
+                        <span>${coin.symbol}</span>
+                        <span class="text-muted small">$${price} <span class="${changeClass}">${change}%</span></span>
+                    </button>
+                `;
+            }).join('');
+
+            listEl.querySelectorAll('.modal-coin-item').forEach(btn => {
+                btn.addEventListener('click', () => selectCoinForAdd(btn.getAttribute('data-symbol')));
+            });
+        }
+
+        function selectCoinForAdd(symbol) {
+            selectedSymbol = symbol;
+            document.getElementById('selectedCoinLabel').textContent = symbol;
+            document.getElementById('coinSelectStep').classList.add('d-none');
+            document.getElementById('amountStep').classList.remove('d-none');
+            document.getElementById('confirmAddCoinBtn').classList.remove('d-none');
+            const amountInput = document.getElementById('coinAmountInput');
+            amountInput.value = '';
+            amountInput.focus();
+        }
+
+        function resetModalToSearch() {
+            selectedSymbol = null;
+            document.getElementById('amountStep').classList.add('d-none');
+            document.getElementById('coinSelectStep').classList.remove('d-none');
+            document.getElementById('confirmAddCoinBtn').classList.add('d-none');
+            document.getElementById('modalCoinSearch').value = '';
+            renderModalCoinList('');
+        }
+
+        document.getElementById('backToSearchBtn').addEventListener('click', resetModalToSearch);
+
+        document.getElementById('modalCoinSearch').addEventListener('input', function () {
+            renderModalCoinList(this.value);
+        });
+
+        document.getElementById('confirmAddCoinBtn').addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('coinAmountInput').value);
+            if (!selectedSymbol || isNaN(amount) || amount < 0) {
+                return;
+            }
+            const existing = watchlist.find(w => w.symbol === selectedSymbol);
+            if (existing) {
+                existing.amount = amount;
+            } else {
+                watchlist.push({ symbol: selectedSymbol, amount });
+            }
+            saveWatchlist();
+            renderWatchlistTable();
+
+            const modalEl = document.getElementById('addCoinModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        });
+
+        document.getElementById('addCoinModal').addEventListener('show.bs.modal', () => {
+            resetModalToSearch();
+            if (!availableCoins.length) {
+                fetchAllTickers().then(() => renderModalCoinList(''));
+            }
+        });
+
+        // ---------- Watchlist table logic ----------
+
+        async function fetchChartData(symbol) {
+            try {
+                const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1h&limit=24`);
+                if (!response.ok) return null;
+                const data = await response.json();
+                return data.map(item => Number(item[4]));
+            } catch (error) {
+                return null;
+            }
+        }
+
+        async function renderCharts(symbols) {
+            for (const symbol of symbols) {
+                const closes = await fetchChartData(symbol);
+                if (!closes) continue;
+
+                const canvas = document.getElementById(`chart-${symbol}`);
+                if (!canvas) continue;
+
+                const minPrice = Math.min(...closes);
+                const maxPrice = Math.max(...closes);
+                const isPositive = closes[closes.length - 1] >= closes[0];
+
+                if (chartInstances[symbol]) {
+                    chartInstances[symbol].destroy();
+                }
+
+                chartInstances[symbol] = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: closes.map((_, i) => i),
+                        datasets: [{
+                            data: closes,
+                            borderColor: isPositive ? '#16a34a' : '#dc2626',
+                            borderWidth: 2,
+                            fill: true,
+                            backgroundColor: isPositive ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                            tension: 0.3,
+                            pointRadius: 0,
+                            pointHoverRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: minPrice * 0.999, max: maxPrice * 1.001, display: false },
+                            x: { display: false }
+                        }
+                    }
+                });
+            }
+        }
+
+        function removeCoin(symbol) {
+            watchlist = watchlist.filter(w => w.symbol !== symbol);
+            saveWatchlist();
+            renderWatchlistTable();
+        }
+
+        function renderWatchlistTable() {
+            const tableBody = document.getElementById('watchlistTableBody');
+            const totalValueEl = document.getElementById('totalValue');
+
+            if (!watchlist.length) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Your watchlist is empty. Click "+ Add Coin" to get started.</td></tr>';
+                totalValueEl.textContent = '$0.00';
+                return;
+            }
+
+            const tickerMap = new Map(availableCoins.map(c => [c.symbol, c]));
+            let totalValue = 0;
+
+            tableBody.innerHTML = watchlist.map(item => {
+                const ticker = tickerMap.get(item.symbol);
+                const price = ticker ? Number(ticker.lastPrice) : 0;
+                const change = ticker ? Number(ticker.priceChangePercent).toFixed(2) : '—';
+                const changeClass = ticker && change >= 0 ? 'text-success' : 'text-danger';
+                const value = price * item.amount;
+                totalValue += value;
+
+                return `
+                    <tr>
+                        <td><strong>${item.symbol}</strong></td>
+                        <td>${item.amount}</td>
+                        <td class="d-none d-md-table-cell">$${price.toFixed(2)}</td>
+                        <td>$${value.toFixed(2)}</td>
+                        <td class="d-none d-md-table-cell ${changeClass}">${change}${ticker ? '%' : ''}</td>
+                        <td class="d-none d-md-table-cell" style="width: 140px; padding: 0.5rem 0.25rem;">
+                            <canvas id="chart-${item.symbol}" height="30" style="max-width: 100%;"></canvas>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-coin-btn" data-symbol="${item.symbol}" title="Remove">&times;</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            totalValueEl.textContent = '$' + totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            tableBody.querySelectorAll('.remove-coin-btn').forEach(btn => {
+                btn.addEventListener('click', () => removeCoin(btn.getAttribute('data-symbol')));
+            });
+
+            renderCharts(watchlist.map(w => w.symbol));
+        }
+
+        async function refreshAll() {
+            await fetchAllTickers();
+            renderWatchlistTable();
+        }
+
+        loadWatchlist();
+        refreshAll();
+        setInterval(refreshAll, 60000);
     </script>
 </body>
 
-</html>
+</html> 
