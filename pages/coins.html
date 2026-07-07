@@ -12,9 +12,50 @@
 </head>
 
 <body>
+    <!-- Mobile top navbar with burger menu (visible below lg) -->
+    <nav class="navbar navbar-light bg-light border-bottom d-lg-none">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center mb-0" href="../index.html">
+                <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2"
+                    style="width: 32px; height: 32px; object-fit: cover;">
+                <span class="fw-bold fst-italic">Coin Radar</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+                aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse" id="sidebarMenu">
+            <ul class="nav flex-column sidebar-nav p-3">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="Coins.html" data-nav="coins" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Coins</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Watchlist</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark" href="settings.html" data-nav="settings" data-bs-toggle="collapse"
+                        data-bs-target="#sidebarMenu">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <aside class="col-2 bg-light border-end p-4">
+            <!-- Sidebar: hidden on small screens, visible from lg up -->
+            <aside class="col-lg-2 bg-light border-end p-4 d-none d-lg-block">
                 <div class="d-flex align-items-center mb-4">
                     <img src="../assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
                     <div class="fw-bold h5 mb-0 fst-italic">
@@ -43,7 +84,7 @@
                 </ul>
             </aside>
 
-            <div class="col-9 p-4">
+            <div class="col-12 col-lg-9 col-xl-9 p-3 p-lg-4">
                 <h2 class="mb-3">Crypto Coins</h2>
                 <p class="text-muted">Live market data from Binance.</p>
 
@@ -57,8 +98,8 @@
                             <tr>
                                 <th>Symbol</th>
                                 <th>Price</th>
-                                <th>24h Change</th>
-                                <th>24h Volume</th>
+                                <th class="d-none d-md-table-cell">24h Change</th>
+                                <th class="d-none d-md-table-cell">24h Volume</th>
                                 <th>24h Chart</th>
                             </tr>
                         </thead>
@@ -185,8 +226,8 @@
                     <tr class="coin-row" data-symbol="${item.symbol}" style="cursor: pointer;">
                         <td><strong>${item.symbol}</strong></td>
                         <td>$${price}</td>
-                        <td class="${changeClass}">${change}%</td>
-                        <td>${volume}</td>
+                        <td class="d-none d-md-table-cell ${changeClass}">${change}%</td>
+                        <td class="d-none d-md-table-cell">${volume}</td>
                         <td style=\"width: 16.67%; padding: 0.5rem 0.25rem;\"><canvas id=\"chart-${item.symbol}\" height=\"30\" style=\"max-width: 100%;\"></canvas></td>
                     </tr>
                 `;
