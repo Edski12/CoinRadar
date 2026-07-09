@@ -11,9 +11,44 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-light bg-light border-bottom d-lg-none">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center mb-0" href="index.html">
+                <img src="assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                <span class="fw-bold fst-italic">Coin Radar</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"
+                aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse" id="sidebarMenu">
+            <ul class="nav flex-column sidebar-nav p-3">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark mobile-nav-link" href="pages/coins.html" data-nav="coins">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Coins</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark mobile-nav-link" href="pages/watchlist.html" data-nav="watchlist">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Watchlist</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-dark mobile-nav-link" href="pages/settings.html" data-nav="settings">
+                        <span class="nav-indicator" aria-hidden="true">←</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row min-vh-100">
-            <div class="col-2 bg-light border-end p-4">
+            <aside class="col-lg-2 bg-light border-end p-4 d-none d-lg-block">
                 <div class="d-flex align-items-center mb-4">
                     <img src="assets/images/coinradarIcon.png" alt="Coin Radar logo" class="me-2" style="width: 40px; height: 40px; object-fit: cover;">
                     <div class="fw-bold h5 mb-0 fst-italic">Coin Radar</div>
@@ -38,9 +73,9 @@
                         </a>
                     </li>
                 </ul>
-            </div>
+            </aside>
 
-            <div class="col-9 p-4">
+            <div class="col-12 col-lg-9 col-xl-9 p-3 p-lg-4">
                 <h2 class="mb-3">Main Page</h2>
                 <p>This is where the chart/API content will be displayed.</p>
             </div>
@@ -53,12 +88,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+            const mobileMenu = document.getElementById('sidebarMenu');
             document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
                 const target = link.getAttribute('href').split('/').pop().split('?')[0].toLowerCase();
                 const isActive = currentPage === target || (currentPage === 'index.html' && target === 'index.html');
                 link.classList.toggle('active', isActive);
 
                 link.addEventListener('click', (event) => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(mobileMenu);
+                        bsCollapse.hide();
+                    }
+
                     if (link.classList.contains('active')) {
                         event.preventDefault();
                         if (document.referrer && document.referrer !== window.location.href) {

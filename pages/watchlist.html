@@ -28,22 +28,19 @@
         <div class="collapse" id="sidebarMenu">
             <ul class="nav flex-column sidebar-nav p-3">
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="coins.html" data-nav="coins" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="coins.html" data-nav="coins">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Coins</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="watchlist.html" data-nav="watchlist">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Watchlist</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="settings.html" data-nav="settings" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="settings.html" data-nav="settings">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Settings</span>
                     </a>
@@ -124,6 +121,25 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="card ai-chat-card mt-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="mb-1">Coin Radar AI</h5>
+                                <p class="text-muted small mb-0">Ask about your holdings and recent price moves.</p>
+                            </div>
+                            <span class="badge bg-light text-dark">Local prototype</span>
+                        </div>
+                        <div id="aiChatMessages" class="ai-chat-messages mb-3">
+                            <div class="ai-bubble bot">Hello! I can summarize your watchlist using live Binance data and recent market context.</div>
+                        </div>
+                        <form id="aiChatForm" class="position-relative">
+                            <input id="aiChatInput" class="form-control ai-chat-input" type="text" placeholder="Ask about BTC, ETH, or your portfolio..." autocomplete="off">
+                            <button class="btn btn-primary ai-send-btn" type="submit">Send</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -170,12 +186,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+            const mobileMenu = document.getElementById('sidebarMenu');
+
             document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
                 const target = link.getAttribute('href').split('/').pop().split('?')[0].toLowerCase();
                 const isActive = currentPage === target;
                 link.classList.toggle('active', isActive);
 
                 link.addEventListener('click', (event) => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(mobileMenu);
+                        bsCollapse.hide();
+                    }
+
                     if (link.classList.contains('active')) {
                         event.preventDefault();
                         if (document.referrer && document.referrer !== window.location.href) {
@@ -416,6 +439,56 @@
             await fetchAllTickers();
             renderWatchlistTable();
         }
+
+        function addChatMessage(text, role = 'bot') {
+            const container = document.getElementById('aiChatMessages');
+            const bubble = document.createElement('div');
+            bubble.className = `ai-bubble ${role}`;
+            bubble.textContent = text;
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function askAiAssistant(message) {
+            const payload = {
+                message,
+                holdings: watchlist
+            };
+
+            addChatMessage(message, 'user');
+            const submitBtn = document.querySelector('#aiChatForm button');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '…';
+
+            try {
+                const response = await fetch('http://localhost:3000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to contact the local AI backend');
+                }
+
+                const data = await response.json();
+                addChatMessage(data.reply || 'No answer received.', 'bot');
+            } catch (error) {
+                addChatMessage(error.message || 'Something went wrong.', 'bot');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send';
+            }
+        }
+
+        document.getElementById('aiChatForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            askAiAssistant(message);
+        });
 
         loadWatchlist();
         refreshAll();

@@ -28,22 +28,19 @@
         <div class="collapse" id="sidebarMenu">
             <ul class="nav flex-column sidebar-nav p-3">
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="Coins.html" data-nav="coins" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="Coins.html" data-nav="coins">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Coins</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="watchlist.html" data-nav="watchlist" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="watchlist.html" data-nav="watchlist">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Watchlist</span>
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a class="nav-link text-dark" href="settings.html" data-nav="settings" data-bs-toggle="collapse"
-                        data-bs-target="#sidebarMenu">
+                    <a class="nav-link text-dark mobile-nav-link" href="settings.html" data-nav="settings">
                         <span class="nav-indicator" aria-hidden="true">←</span>
                         <span>Settings</span>
                     </a>
@@ -120,12 +117,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+            const mobileMenu = document.getElementById('sidebarMenu');
+
             document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
                 const target = link.getAttribute('href').split('/').pop().split('?')[0].toLowerCase();
                 const isActive = currentPage === target;
                 link.classList.toggle('active', isActive);
 
                 link.addEventListener('click', (event) => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(mobileMenu);
+                        bsCollapse.hide();
+                    }
+
                     if (link.classList.contains('active')) {
                         event.preventDefault();
                         if (document.referrer && document.referrer !== window.location.href) {
