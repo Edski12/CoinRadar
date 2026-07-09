@@ -1,12 +1,37 @@
 import { MARKET_CONFIG } from './config.js';
 import { normalizeSymbol } from './format.js';
 
+const CRYPTO_NEWS_API_BASE_URL = 'https://cryptocurrency.cv/api';
+
 async function requestJson(url, options = {}) {
     const response = await fetch(url, options);
     if (!response.ok) {
         throw new Error(`Request failed: ${response.status}`);
     }
     return response.json();
+}
+
+function buildBackendNewsUrl(feed, params = {}) {
+    const url = new URL(`${MARKET_CONFIG.backendBaseUrl}/news`);
+    if (feed) url.searchParams.set('feed', feed);
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            url.searchParams.set(key, Array.isArray(value) ? value.join(',') : String(value));
+        }
+    });
+    return url.toString();
+}
+
+async function requestNews(feed, params = {}, fallback = {}) {
+    try {
+        return await requestJson(buildBackendNewsUrl(feed, params));
+    } catch (error) {
+        return {
+            source: 'local-fallback',
+            error: error.message,
+            ...fallback
+        };
+    }
 }
 
 export async function getAllTickers() {
@@ -47,34 +72,36 @@ export async function getMarketPulse(symbols = MARKET_CONFIG.defaultSymbols) {
     }));
 }
 
-export async function getMarketNews(symbols = []) {
-    const params = symbols.length ? `?symbols=${encodeURIComponent(symbols.join(','))}` : '';
+export async function getLatestNews(options = {}) {
+    return requestNews('', options, { items: fallbackNews() });
+}
 
-    try {
-        return await requestJson(`${MARKET_CONFIG.backendBaseUrl}/news${params}`);
-    } catch (error) {
-        return {
-            source: 'local-fallback',
-            items: [
-                {
-                    id: 'fallback-btc-regulation',
-                    symbol: 'BTC',
-                    severity: 'medium',
-                    title: 'BTC regulation and exchange-security headlines are being monitored.',
-                    url: '#',
-                    publishedAt: new Date().toISOString()
-                },
-                {
-                    id: 'fallback-eth-network',
-                    symbol: 'ETH',
-                    severity: 'low',
-                    title: 'ETH network and ETF-related headlines will appear here when the backend news feed is connected.',
-                    url: '#',
-                    publishedAt: new Date().toISOString()
-                }
-            ]
-        };
-    }
+export async function getBreakingNews(options = {}) {
+    return requestNews('breaking', options, { items: [] });
+}
+
+export async function searchNews(query, options = {}) {
+    return requestNews('search', { ...options, q: query }, { items: [] });
+}
+
+export async function getTrendingTopics() {
+    return requestNews('trending', {}, { topics: [] });
+}
+
+export async function getFearGreedIndex() {
+    return requestNews('fear-greed', {}, { index: null });
+}
+
+export async function getSentiment() {
+    return requestNews('sentiment', {}, { sentiment: null });
+}
+
+export async function askCryptoNews(question) {
+    return requestNews('ask', { q: question }, { answer: null });
+}
+
+export async function getMarketNews(symbols = []) {
+    return getLatestNews({ symbols });
 }
 
 export async function askCompanion(payload) {
@@ -83,4 +110,17 @@ export async function askCompanion(payload) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     });
+}
+
+function fallbackNews() {
+    return [
+        {
+            id: 'fallback-provider-unavailable',
+            symbol: 'MARKET',
+            severity: 'watch',
+            title: `cryptocurrency.cv news is configured through CoinRadar's Lambda layer (${CRYPTO_NEWS_API_BASE_URL}), but the backend feed is not reachable right now.`,
+            url: '#',
+            publishedAt: new Date().toISOString()
+        }
+    ];
 }

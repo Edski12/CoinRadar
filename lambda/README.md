@@ -10,7 +10,7 @@ Ollama should run on EC2, ECS/Fargate, or another persistent host. Lambda is a p
 
 `newsPoller/handler.js` is designed for an EventBridge schedule and publishes major headlines to SNS. `newsSubscriber/handler.js` consumes those SNS messages and is the place to match affected users from RDS and write in-app notifications or send SES email.
 
-The default news source is CryptoCompare's public news endpoint. It may require a paid/keyed tier depending on usage and policy changes; set `NEWS_FEED_URL` to your chosen provider.
+The default news source is `https://cryptocurrency.cv/api`. It is intended to be unauthenticated, so this integration has no Secrets Manager or API-key overhead. During sandbox testing on July 9, 2026, direct requests to `/api/news?limit=2` and `/api/openapi.json` returned `402 Payment Required`, so verify access from the deployment network before relying on the feed in production.
 
 ## AWS Resources Needed
 

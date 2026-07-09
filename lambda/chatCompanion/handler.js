@@ -1,4 +1,4 @@
-const { getNewsItems, getTickersForHoldings } = require('../shared/api');
+const { askCryptoNews, getLatestNews, getTickersForHoldings, searchNews } = require('../shared/api');
 const { formatCurrency, formatPercent } = require('../shared/format');
 
 const OLLAMA_URL = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
@@ -30,6 +30,17 @@ function marketSummary(marketData) {
     }).join('\n');
 }
 
+function wantsCurrentEvents(message) {
+    const lower = String(message || '').toLowerCase();
+    return ['news', 'happen', 'happening', 'headline', 'event', 'regulation', 'hack', 'ban', 'why', 'today'].some(keyword => lower.includes(keyword));
+}
+
+function compactAskAnswer(answer) {
+    if (!answer) return '';
+    if (typeof answer === 'string') return answer;
+    return answer.answer || answer.response || answer.text || answer.summary || JSON.stringify(answer).slice(0, 1000);
+}
+
 async function askOllama(messages) {
     const ollamaResponse = await fetch(`${OLLAMA_URL}/api/chat`, {
         method: 'POST',
@@ -57,9 +68,19 @@ exports.handler = async event => {
     try {
         const body = parseBody(event);
         const holdings = Array.isArray(body.holdings) ? body.holdings : [];
-        const symbols = [...new Set(holdings.map(item => item.symbol).filter(Boolean))];
+        const symbols = [...new Set([
+            ...holdings.map(item => item.symbol),
+            body.pageContext?.symbol
+        ].filter(Boolean))];
         const marketData = await getTickersForHoldings(holdings);
-        const news = Array.isArray(body.news) && body.news.length ? body.news : await getNewsItems(symbols);
+        const newsQuery = symbols.length ? symbols.map(symbol => symbol.replace(/USDT$/i, '')).join(' OR ') : body.message;
+        const shouldSearchNews = wantsCurrentEvents(body.message) || Boolean(body.pageContext?.symbol);
+        const [newsResult, askResult] = await Promise.allSettled([
+            shouldSearchNews ? searchNews(newsQuery, { limit: 8, symbols }) : getLatestNews({ limit: 6, symbols }),
+            shouldSearchNews ? askCryptoNews(body.message) : Promise.resolve(null)
+        ]);
+        const news = newsResult.status === 'fulfilled' ? newsResult.value.items || [] : [];
+        const cryptoNewsAnswer = askResult.status === 'fulfilled' ? compactAskAnswer(askResult.value) : '';
 
         const messages = [
             {
@@ -78,13 +99,15 @@ exports.handler = async event => {
                     'Portfolio context:',
                     marketSummary(marketData) || 'No holdings supplied.',
                     'Relevant news:',
-                    news.slice(0, 6).map(item => `${item.symbol || 'MARKET'} [${item.severity}]: ${item.title}`).join('\n') || 'No news supplied.'
+                    news.slice(0, 6).map(item => `${item.symbol || 'MARKET'} [${item.severity}]: ${item.title}`).join('\n') || 'No news supplied.',
+                    'cryptocurrency.cv direct answer:',
+                    cryptoNewsAnswer || 'No direct answer supplied.'
                 ].join('\n')
             }
         ];
 
         const reply = await askOllama(messages);
-        return response(200, { reply, marketData, news: news.slice(0, 6) });
+        return response(200, { reply, marketData, news: news.slice(0, 6), cryptoNewsAnswer });
     } catch (error) {
         return response(500, { error: error.message });
     }

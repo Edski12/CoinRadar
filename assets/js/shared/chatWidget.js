@@ -1,4 +1,4 @@
-import { askCompanion, getMarketNews } from './api.js';
+import { askCompanion } from './api.js';
 import { readWatchlist } from './storage.js';
 
 function getPageContext() {
@@ -80,12 +80,7 @@ export function initChatWidget() {
         try {
             const watchlist = readWatchlist();
             const pageContext = getPageContext();
-            const symbols = [...new Set([
-                ...watchlist.map(item => item.symbol),
-                pageContext.symbol
-            ].filter(Boolean))];
-            const news = await getMarketNews(symbols);
-            const response = await askCompanion({ message, holdings: watchlist, pageContext, news: news.items || [] });
+            const response = await askCompanion({ message, holdings: watchlist, pageContext });
             addMessage(messages, response.reply || 'No answer received.', 'bot');
         } catch (error) {
             addMessage(messages, 'The AI backend is not connected yet. Ollama should run outside Lambda on EC2 or a small container, with Lambda only orchestrating context and requests.', 'bot');
