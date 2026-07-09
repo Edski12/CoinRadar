@@ -1,155 +1,63 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Coin Detail</title>
+    <title>Coin Radar - Coin Detail</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 id="coinTitle" class="mb-1">Coin</h2>
-                <p id="coinPrice" class="text-muted mb-0">Loading...</p>
-            </div>
-            <a href="#" id="backButton" class="btn btn-outline-dark">Back</a>
-        </div>
 
-        <div class="chart-container">
-            <div class="tools-sidebar">
-                <button class="tool-btn active" data-tool="cursor" title="Cursor"><i class="fas fa-arrow-pointer"></i></button>
-                <button class="tool-btn" data-tool="straightLine" title="Trend Line"><i class="fas fa-chart-line"></i></button>
-                <button class="tool-btn" data-tool="horizontalStraightLine" title="Horizontal"><i class="fas fa-minus"></i></button>
-                <button class="tool-btn" data-tool="verticalStraightLine" title="Vertical"><i class="fas fa-lines-leaning"></i></button>
-                <button class="tool-btn" data-tool="rectangle" title="Rectangle"><i class="fas fa-square"></i></button>
-                <button class="tool-btn" data-tool="fibonacciLine" title="Fib Retracement"><i class="fas fa-wave-square"></i></button>
-                <hr style="margin: 5px 0; border: none; border-top: 1px solid #dee2e6;">
-                <button class="tool-btn danger" data-tool="clear" title="Clear Drawings"><i class="fas fa-trash"></i></button>
-            </div>
-            <div class="chart-box">
-                <div class="timeframe-selector">
-                    <button class="timeframe-btn active" data-interval="1m">1m</button>
-                    <button class="timeframe-btn" data-interval="3m">3m</button>
-                    <button class="timeframe-btn" data-interval="5m">5m</button>
-                    <button class="timeframe-btn" data-interval="15m">15m</button>
-                    <button class="timeframe-btn" data-interval="1h">1h</button>
-                    <button class="timeframe-btn" data-interval="4h">4h</button>
-                    <button class="timeframe-btn" data-interval="1d">1d</button>
+<body>
+    <div data-cr-nav></div>
+
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <div data-cr-sidebar class="col-lg-2 d-none d-lg-block p-0"></div>
+
+            <main class="col-12 col-lg-10 p-3 p-lg-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                    <div>
+                        <h1 id="coinTitle" class="h2 mb-1">Coin</h1>
+                        <p id="coinPrice" class="text-muted mb-0">Loading...</p>
+                    </div>
+                    <a href="#" id="backButton" class="btn btn-outline-dark">Back</a>
                 </div>
-                <div id="priceChart"></div>
-            </div>
+
+                <div class="chart-container">
+                    <div class="tools-sidebar">
+                        <button class="tool-btn active" data-tool="cursor" title="Cursor"><i class="fas fa-arrow-pointer"></i></button>
+                        <button class="tool-btn" data-tool="straightLine" title="Trend Line"><i class="fas fa-chart-line"></i></button>
+                        <button class="tool-btn" data-tool="horizontalStraightLine" title="Horizontal"><i class="fas fa-minus"></i></button>
+                        <button class="tool-btn" data-tool="verticalStraightLine" title="Vertical"><i class="fas fa-lines-leaning"></i></button>
+                        <button class="tool-btn" data-tool="rectangle" title="Rectangle"><i class="fas fa-square"></i></button>
+                        <button class="tool-btn" data-tool="fibonacciLine" title="Fib Retracement"><i class="fas fa-wave-square"></i></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn danger" data-tool="clear" title="Clear Drawings"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="chart-box">
+                        <div class="timeframe-selector">
+                            <button class="timeframe-btn active" data-interval="1m">1m</button>
+                            <button class="timeframe-btn" data-interval="3m">3m</button>
+                            <button class="timeframe-btn" data-interval="5m">5m</button>
+                            <button class="timeframe-btn" data-interval="15m">15m</button>
+                            <button class="timeframe-btn" data-interval="1h">1h</button>
+                            <button class="timeframe-btn" data-interval="4h">4h</button>
+                            <button class="timeframe-btn" data-interval="1d">1d</button>
+                        </div>
+                        <div id="priceChart"></div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const symbol = params.get('symbol') || 'BTCUSDT';
-        const title = document.getElementById('coinTitle');
-        const priceText = document.getElementById('coinPrice');
-        let currentInterval = '1m';
-
-        const chart = klinecharts.init('priceChart');
-        chart.setStyles({
-            candle: {
-                bar: {
-                    upColor: '#16a34a',
-                    downColor: '#dc2626',
-                    upBorderColor: '#16a34a',
-                    downBorderColor: '#dc2626',
-                    upWickColor: '#16a34a',
-                    downWickColor: '#dc2626'
-                }
-            }
-        });
-
-        function formatPrice(value) {
-            return `$${Number(value).toFixed(2)}`;
-        }
-
-        async function fetchKlines(interval = '1m') {
-            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=1000`);
-            if (!response.ok) throw new Error('Unable to fetch chart data');
-            const data = await response.json();
-            return data.map(item => ({
-                timestamp: item[0],
-                open: Number(item[1]),
-                high: Number(item[2]),
-                low: Number(item[3]),
-                close: Number(item[4]),
-                volume: Number(item[5])
-            }));
-        }
-
-        async function loadCoinData() {
-            try {
-                const tickerResponse = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
-                if (!tickerResponse.ok) throw new Error('Unable to fetch ticker');
-                const ticker = await tickerResponse.json();
-
-                title.textContent = symbol;
-                priceText.textContent = `${formatPrice(ticker.lastPrice)} • ${ticker.priceChangePercent}% (24h)`;
-
-                const klines = await fetchKlines(currentInterval);
-                chart.applyNewData(klines);
-            } catch (error) {
-                title.textContent = symbol;
-                priceText.textContent = 'Unable to load chart data.';
-            }
-        }
-
-        // Timeframe selector
-        const timeframeButtons = document.querySelectorAll('.timeframe-btn');
-        timeframeButtons.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                currentInterval = btn.dataset.interval;
-                timeframeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                try {
-                    const klines = await fetchKlines(currentInterval);
-                    chart.applyNewData(klines);
-                } catch (error) {
-                    console.error('Error loading chart data:', error);
-                }
-            });
-        });
-
-        // Drawing toolbar
-        const toolButtons = document.querySelectorAll('.tool-btn');
-        toolButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tool = btn.dataset.tool;
-
-                if (tool === 'clear') {
-                    chart.removeOverlay();
-                    return;
-                }
-
-                toolButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                if (tool === 'cursor') {
-                    return; // just deselects drawing mode
-                }
-
-                chart.createOverlay(tool);
-            });
-        });
-
-        document.getElementById('backButton').addEventListener('click', function (event) {
-            event.preventDefault();
-            if (document.referrer) {
-                window.history.back();
-            } else {
-                window.location.href = 'Coins.html';
-            }
-        });
-
-        loadCoinData();
-        setInterval(loadCoinData, 30000);
-    </script>
+    <script type="module" src="../assets/js/shared/bootstrap.js"></script>
+    <script type="module" src="../assets/js/pages/coinDetails.js"></script>
 </body>
+
 </html>
