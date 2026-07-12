@@ -170,6 +170,13 @@ body {
 #priceChart {
     width: 100%;
     height: min(68vh, 38rem);
+    touch-action: none;
+    -ms-touch-action: none;
+}
+
+#priceChart canvas {
+    touch-action: none;
+    -ms-touch-action: none;
 }
 
 .timeframe-selector {
