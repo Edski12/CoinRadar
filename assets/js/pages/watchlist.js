@@ -116,7 +116,7 @@ function renderWatchlistTable() {
         totalValue += value;
 
         return `
-            <tr>
+            <tr class="coin-row" data-symbol="${item.symbol}">
                 <td><strong>${item.symbol}</strong></td>
                 <td>${item.amount}</td>
                 <td class="d-none d-md-table-cell">${formatCurrency(price)}</td>
@@ -129,10 +129,19 @@ function renderWatchlistTable() {
     }).join('');
 
     totalValueEl.textContent = formatCurrency(totalValue);
+
     tableBody.querySelectorAll('.remove-coin-btn').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', event => {
+            event.stopPropagation();
             watchlist = removeHolding(watchlist, button.dataset.symbol);
             renderWatchlistTable();
+        });
+    });
+
+    tableBody.querySelectorAll('.coin-row').forEach(row => {
+        row.addEventListener('click', event => {
+            if (event.target.closest('canvas') || event.target.closest('.remove-coin-btn')) return;
+            window.location.href = `coin-details.html?symbol=${encodeURIComponent(row.dataset.symbol)}`;
         });
     });
 
