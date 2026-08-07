@@ -43,6 +43,9 @@ app.get('/news', async (req, res) => {
 });
 
 app.post('/chat', async (req, res) => {
+    // The PHP session API, not the browser, supplies database-backed holdings.
+    // Ignore a client-provided user id even if this service is exposed accidentally.
+    delete req.body.userId;
     const result = await chatCompanion.handler(toLambdaEvent(req));
     sendLambdaResponse(res, result);
 });
