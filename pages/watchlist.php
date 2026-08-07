@@ -1,3 +1,6 @@
+<?php require_once __DIR__ . '/../config/auth.php';
+require_login(); ?>
+<script>window.COINRADAR_USER = <?= json_encode(current_user()) ?>; window.COINRADAR_CSRF = <?= json_encode(csrf_token()) ?>;</script>
 <!doctype html>
 <html lang="en">
 
@@ -53,7 +56,8 @@
                         </thead>
                         <tbody id="watchlistTableBody">
                             <tr>
-                                <td colspan="7" class="text-center text-muted">Your watchlist is empty. Click "+ Add Coin" to get started.</td>
+                                <td colspan="7" class="text-center text-muted">Your watchlist is empty. Click "+ Add
+                                    Coin" to get started.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -71,23 +75,27 @@
                 </div>
                 <div class="modal-body">
                     <div id="coinSelectStep">
-                        <input type="text" id="modalCoinSearch" class="form-control mb-3" placeholder="Search coins (e.g. BTC, ETH)..." autocomplete="off">
+                        <input type="text" id="modalCoinSearch" class="form-control mb-3"
+                            placeholder="Search coins (e.g. BTC, ETH)..." autocomplete="off">
                         <div id="modalCoinList" class="list-group modal-coin-list">
                             <div class="text-center text-muted py-3">Loading available coins...</div>
                         </div>
                     </div>
 
                     <div id="amountStep" class="d-none">
-                        <button type="button" class="btn btn-link p-0 mb-3" id="backToSearchBtn">&larr; Back to search</button>
+                        <button type="button" class="btn btn-link p-0 mb-3" id="backToSearchBtn">&larr; Back to
+                            search</button>
                         <strong id="selectedCoinLabel" class="h5 d-block mb-3"></strong>
                         <label for="coinAmountInput" class="form-label">How much do you hold?</label>
-                        <input type="number" id="coinAmountInput" class="form-control" placeholder="0.00" min="0" step="any">
+                        <input type="number" id="coinAmountInput" class="form-control" placeholder="0.00" min="0"
+                            step="any">
                         <div class="form-text">Enter the quantity of coins you own, not a dollar value.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary d-none" id="confirmAddCoinBtn">Add to Watchlist</button>
+                    <button type="button" class="btn btn-primary d-none" id="confirmAddCoinBtn">Add to
+                        Watchlist</button>
                 </div>
             </div>
         </div>

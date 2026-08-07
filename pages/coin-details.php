@@ -1,3 +1,5 @@
+<?php require_once __DIR__ . '/../config/auth.php'; ?>
+<script>window.COINRADAR_USER = <?= json_encode(current_user()) ?>; window.COINRADAR_CSRF = <?= json_encode(csrf_token()) ?>;</script>
 <!doctype html>
 <html lang="en">
 
@@ -28,14 +30,21 @@
 
                 <div class="chart-container">
                     <div class="tools-sidebar">
-                        <button class="tool-btn active" data-tool="cursor" title="Cursor"><i class="fas fa-arrow-pointer"></i></button>
-                        <button class="tool-btn" data-tool="straightLine" title="Trend Line"><i class="fas fa-chart-line"></i></button>
-                        <button class="tool-btn" data-tool="horizontalStraightLine" title="Horizontal"><i class="fas fa-minus"></i></button>
-                        <button class="tool-btn" data-tool="verticalStraightLine" title="Vertical"><i class="fas fa-lines-leaning"></i></button>
-                        <button class="tool-btn" data-tool="rectangle" title="Rectangle"><i class="fas fa-square"></i></button>
-                        <button class="tool-btn" data-tool="fibonacciLine" title="Fib Retracement"><i class="fas fa-wave-square"></i></button>
+                        <button class="tool-btn active" data-tool="cursor" title="Cursor"><i
+                                class="fas fa-arrow-pointer"></i></button>
+                        <button class="tool-btn" data-tool="straightLine" title="Trend Line"><i
+                                class="fas fa-chart-line"></i></button>
+                        <button class="tool-btn" data-tool="horizontalStraightLine" title="Horizontal"><i
+                                class="fas fa-minus"></i></button>
+                        <button class="tool-btn" data-tool="verticalStraightLine" title="Vertical"><i
+                                class="fas fa-lines-leaning"></i></button>
+                        <button class="tool-btn" data-tool="rectangle" title="Rectangle"><i
+                                class="fas fa-square"></i></button>
+                        <button class="tool-btn" data-tool="fibonacciLine" title="Fib Retracement"><i
+                                class="fas fa-wave-square"></i></button>
                         <div class="tool-divider"></div>
-                        <button class="tool-btn danger" data-tool="clear" title="Clear Drawings"><i class="fas fa-trash"></i></button>
+                        <button class="tool-btn danger" data-tool="clear" title="Clear Drawings"><i
+                                class="fas fa-trash"></i></button>
                     </div>
                     <div class="chart-box">
                         <div class="timeframe-selector">

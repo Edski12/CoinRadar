@@ -1,3 +1,6 @@
+<?php require_once __DIR__ . '/../config/auth.php';
+require_login(); ?>
+<script>window.COINRADAR_USER = <?= json_encode(current_user()) ?>; window.COINRADAR_CSRF = <?= json_encode(csrf_token()) ?>;</script>
 <!doctype html>
 <html lang="en">
 

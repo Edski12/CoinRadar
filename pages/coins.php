@@ -1,3 +1,5 @@
+<?php require_once __DIR__ . '/../config/auth.php'; ?>
+<script>window.COINRADAR_USER = <?= json_encode(current_user()) ?>; window.COINRADAR_CSRF = <?= json_encode(csrf_token()) ?>;</script>
 <!doctype html>
 <html lang="en">
 
@@ -23,7 +25,8 @@
                 <p class="text-muted">Live market data from Binance.</p>
 
                 <div class="mb-3">
-                    <input type="text" id="coinSearch" class="form-control" placeholder="Search coins..." autocomplete="off">
+                    <input type="text" id="coinSearch" class="form-control" placeholder="Search coins..."
+                        autocomplete="off">
                 </div>
 
                 <div class="table-responsive">
