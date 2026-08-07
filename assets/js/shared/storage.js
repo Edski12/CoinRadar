@@ -1,34 +1,25 @@
-const WATCHLIST_KEY = 'coinRadarWatchlist';
+const endpoint = "../api/watchlist.php";
 
-export function readWatchlist() {
-    try {
-        const raw = localStorage.getItem(WATCHLIST_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch (error) {
-        return [];
-    }
+export async function readWatchlist() {
+  const response = await fetch(endpoint);
+  if (!response.ok) throw new Error("Unable to load your watchlist.");
+  return response.json();
 }
 
-export function writeWatchlist(watchlist) {
-    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
+export async function upsertHolding(symbol, amount) {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol, amount }),
+  });
+  if (!response.ok) throw new Error("Unable to save the coin.");
 }
 
-export function upsertHolding(watchlist, symbol, amount) {
-    const next = [...watchlist];
-    const existing = next.find(item => item.symbol === symbol);
-
-    if (existing) {
-        existing.amount = amount;
-    } else {
-        next.push({ symbol, amount });
-    }
-
-    writeWatchlist(next);
-    return next;
-}
-
-export function removeHolding(watchlist, symbol) {
-    const next = watchlist.filter(item => item.symbol !== symbol);
-    writeWatchlist(next);
-    return next;
+export async function removeHolding(symbol) {
+  const response = await fetch(endpoint, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol }),
+  });
+  if (!response.ok) throw new Error("Unable to remove the coin.");
 }

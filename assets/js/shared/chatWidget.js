@@ -1,32 +1,31 @@
-import { askCompanion } from './api.js';
-import { readWatchlist } from './storage.js';
+import { askCompanion } from "./api.js";
 
 function getPageContext() {
-    const params = new URLSearchParams(window.location.search);
-    const symbol = params.get('symbol');
-    const page = window.location.pathname.split('/').pop() || 'index.html';
-    return {
-        page,
-        symbol,
-        title: document.title
-    };
+  const params = new URLSearchParams(window.location.search);
+  const symbol = params.get("symbol");
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  return {
+    page,
+    symbol,
+    title: document.title,
+  };
 }
 
-function addMessage(container, text, role = 'bot') {
-    const bubble = document.createElement('div');
-    bubble.className = `cr-chat-bubble ${role}`;
-    bubble.textContent = text;
-    container.appendChild(bubble);
-    container.scrollTop = container.scrollHeight;
+function addMessage(container, text, role = "bot") {
+  const bubble = document.createElement("div");
+  bubble.className = `cr-chat-bubble ${role}`;
+  bubble.textContent = text;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
 }
 
 export function initChatWidget() {
-    if (document.getElementById('crChatWidget')) return;
+  if (document.getElementById("crChatWidget")) return;
 
-    const widget = document.createElement('section');
-    widget.id = 'crChatWidget';
-    widget.className = 'cr-chat-widget';
-    widget.innerHTML = `
+  const widget = document.createElement("section");
+  widget.id = "crChatWidget";
+  widget.className = "cr-chat-widget";
+  widget.innerHTML = `
         <button class="btn btn-primary cr-chat-toggle" type="button" aria-expanded="false" aria-controls="crChatPanel">
             AI
         </button>
@@ -48,45 +47,57 @@ export function initChatWidget() {
         </div>
     `;
 
-    document.body.appendChild(widget);
+  document.body.appendChild(widget);
 
-    const toggle = widget.querySelector('.cr-chat-toggle');
-    const close = widget.querySelector('.cr-chat-close');
-    const panel = widget.querySelector('.cr-chat-panel');
-    const form = widget.querySelector('.cr-chat-form');
-    const input = form.querySelector('input');
-    const messages = widget.querySelector('.cr-chat-messages');
-    const submit = form.querySelector('button');
+  const toggle = widget.querySelector(".cr-chat-toggle");
+  const close = widget.querySelector(".cr-chat-close");
+  const panel = widget.querySelector(".cr-chat-panel");
+  const form = widget.querySelector(".cr-chat-form");
+  const input = form.querySelector("input");
+  const messages = widget.querySelector(".cr-chat-messages");
+  const submit = form.querySelector("button");
 
-    function setOpen(isOpen) {
-        panel.classList.toggle('open', isOpen);
-        toggle.setAttribute('aria-expanded', String(isOpen));
-        if (isOpen) input.focus();
+  function setOpen(isOpen) {
+    panel.classList.toggle("open", isOpen);
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) input.focus();
+  }
+
+  toggle.addEventListener("click", () =>
+    setOpen(!panel.classList.contains("open")),
+  );
+  close.addEventListener("click", () => setOpen(false));
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = "";
+    addMessage(messages, message, "user");
+    submit.disabled = true;
+    submit.textContent = "...";
+
+    try {
+      if (!window.COINRADAR_USER) {
+        addMessage(messages, "Please sign in first so I can use your saved watchlist.", "bot");
+        return;
+      }
+      const pageContext = getPageContext();
+      const response = await askCompanion({
+        message,
+        pageContext,
+      });
+      addMessage(messages, response.reply || "No answer received.", "bot");
+    } catch (error) {
+      addMessage(
+        messages,
+        `Unable to get an AI response: ${error.message}`,
+        "bot",
+      );
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "Send";
     }
-
-    toggle.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
-    close.addEventListener('click', () => setOpen(false));
-
-    form.addEventListener('submit', async event => {
-        event.preventDefault();
-        const message = input.value.trim();
-        if (!message) return;
-
-        input.value = '';
-        addMessage(messages, message, 'user');
-        submit.disabled = true;
-        submit.textContent = '...';
-
-        try {
-            const watchlist = readWatchlist();
-            const pageContext = getPageContext();
-            const response = await askCompanion({ message, holdings: watchlist, pageContext });
-            addMessage(messages, response.reply || 'No answer received.', 'bot');
-        } catch (error) {
-            addMessage(messages, 'The AI backend is not connected yet. Ollama should run outside Lambda on EC2 or a small container, with Lambda only orchestrating context and requests.', 'bot');
-        } finally {
-            submit.disabled = false;
-            submit.textContent = 'Send';
-        }
-    });
+  });
 }
