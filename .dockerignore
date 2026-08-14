@@ -1,0 +1,13 @@
+.git
+.agents
+.codex
+**/node_modules
+**/.env
+*.log
+database
+assets
+auth
+config
+pages
+*.php
+README.md
