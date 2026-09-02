@@ -2,6 +2,7 @@ const { normalizeSymbol } = require('./format');
 
 const BINANCE_BASE_URL = process.env.BINANCE_BASE_URL || 'https://api.binance.com/api/v3';
 const CRYPTO_NEWS_BASE_URL = 'https://cryptocurrency.cv/api';
+const COINGECKO_BASE_URL = process.env.COINGECKO_BASE_URL || 'https://api.coingecko.com/api/v3';
 
 async function requestJson(url, options = {}) {
     const response = await fetch(url, options);
@@ -117,6 +118,32 @@ async function searchNews(query, options = {}) {
 }
 
 async function getTrendingTopics() {
+    try {
+        const data = await requestJson(`${COINGECKO_BASE_URL}/search/trending`);
+        const trending = (Array.isArray(data?.coins) ? data.coins : [])
+            .map(entry => entry?.item)
+            .filter(Boolean)
+            .slice(0, 8)
+            .map(item => ({
+                id: item.id,
+                name: item.name,
+                symbol: String(item.symbol || '').toUpperCase(),
+                marketCapRank: item.market_cap_rank ?? null,
+                score: item.score ?? null
+            }));
+
+        if (trending.length) {
+            return {
+                source: 'coingecko',
+                timeWindow: '24h',
+                trending
+            };
+        }
+    } catch (error) {
+        // Fall through to the existing news provider when CoinGecko is
+        // unavailable or temporarily rate limited.
+    }
+
     return cryptoNewsRequest('/trending');
 }
 

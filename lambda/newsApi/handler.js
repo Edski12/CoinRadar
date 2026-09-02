@@ -44,7 +44,11 @@ exports.handler = async event => {
         }
 
         if (query.feed === 'trending') {
-            return response(200, { source: 'cryptocurrency.cv', topics: await getTrendingTopics() });
+            const topics = await getTrendingTopics();
+            return response(200, {
+                source: topics?.source || 'cryptocurrency.cv',
+                topics
+            });
         }
 
         if (query.feed === 'fear-greed') {
