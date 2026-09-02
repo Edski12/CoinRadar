@@ -120,12 +120,21 @@ export async function getMarketNews(symbols = []) {
 }
 
 export async function askCompanion(payload) {
-  const chatEndpoint = window.location.pathname.includes("/pages/") ? "../api/chat.php" : "api/chat.php";
-  return requestJson(chatEndpoint, {
+  return requestJson(getChatEndpoint(), {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-CSRF-Token": window.COINRADAR_CSRF || "" },
     body: JSON.stringify(payload),
   });
+}
+
+export async function getChatHistory() {
+  return requestJson(getChatEndpoint());
+}
+
+function getChatEndpoint() {
+  return window.location.pathname.includes("/pages/")
+    ? "../api/chat.php"
+    : "api/chat.php";
 }
 
 function fallbackNews() {

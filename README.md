@@ -46,4 +46,3 @@ Independently deployable Lambda functions for news.
 
 Set `COINRADAR_AI_URL` if the AI service isn't running at `http://127.0.0.1:3000`. Optional overrides: `COINRADAR_AI_TIMEOUT_SECONDS` (default 120s) and `OLLAMA_MAX_TOKENS` (default 300).
 
-> Do not commit real database or Google credentials.

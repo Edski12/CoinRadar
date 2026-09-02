@@ -125,6 +125,20 @@ exports.handler = async (event) => {
     const cryptoNewsAnswer =
       askResult.status === "fulfilled" ? compactAskAnswer(askResult.value) : "";
 
+    const history = (Array.isArray(body.history) ? body.history : [])
+      .filter(
+        (item) =>
+          item &&
+          ["user", "assistant"].includes(item.role) &&
+          typeof item.content === "string" &&
+          item.content.trim(),
+      )
+      .slice(-20)
+      .map((item) => ({
+        role: item.role,
+        content: item.content.trim().slice(0, 4000),
+      }));
+
     const messages = [
       {
         role: "system",
@@ -134,6 +148,7 @@ exports.handler = async (event) => {
           "Do not give direct buy, sell, or hold advice. Explain risk, movements, and context clearly.",
         ].join(" "),
       },
+      ...history,
       {
         role: "user",
         content: [

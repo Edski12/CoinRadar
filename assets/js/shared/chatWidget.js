@@ -1,4 +1,4 @@
-import { askCompanion } from "./api.js";
+import { askCompanion, getChatHistory } from "./api.js";
 
 function getPageContext() {
   const params = new URLSearchParams(window.location.search);
@@ -37,9 +37,7 @@ export function initChatWidget() {
                 </div>
                 <button class="btn btn-sm btn-outline-secondary cr-chat-close" type="button" aria-label="Close chat">&times;</button>
             </div>
-            <div class="cr-chat-messages">
-                <div class="cr-chat-bubble bot">Ask about your watchlist, a chart you're viewing, or recent market news.</div>
-            </div>
+            <div class="cr-chat-messages"></div>
             <form class="cr-chat-form">
                 <input class="form-control" type="text" autocomplete="off" placeholder="Ask Coin Radar AI...">
                 <button class="btn btn-primary" type="submit">Send</button>
@@ -56,11 +54,50 @@ export function initChatWidget() {
   const input = form.querySelector("input");
   const messages = widget.querySelector(".cr-chat-messages");
   const submit = form.querySelector("button");
+  let historyPromise;
+
+  function loadHistory() {
+    if (historyPromise) return historyPromise;
+
+    historyPromise = (async () => {
+      if (!window.COINRADAR_USER) {
+        addMessage(messages, "Sign in to chat and keep your conversation history.", "bot");
+        return;
+      }
+
+      addMessage(messages, "Loading your previous conversation...", "status");
+      try {
+        const data = await getChatHistory();
+        messages.replaceChildren();
+        const history = Array.isArray(data.messages) ? data.messages : [];
+        if (!history.length) {
+          addMessage(messages, "Ask about your watchlist, a chart you're viewing, or recent market news.", "bot");
+          return;
+        }
+
+        history.forEach((message) => {
+          addMessage(
+            messages,
+            message.content,
+            message.role === "user" ? "user" : "bot",
+          );
+        });
+      } catch (error) {
+        messages.replaceChildren();
+        addMessage(messages, `Unable to load chat history: ${error.message}`, "bot");
+      }
+    })();
+
+    return historyPromise;
+  }
 
   function setOpen(isOpen) {
     panel.classList.toggle("open", isOpen);
     toggle.setAttribute("aria-expanded", String(isOpen));
-    if (isOpen) input.focus();
+    if (isOpen) {
+      loadHistory();
+      input.focus();
+    }
   }
 
   toggle.addEventListener("click", () =>
@@ -70,6 +107,7 @@ export function initChatWidget() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    await loadHistory();
     const message = input.value.trim();
     if (!message) return;
 

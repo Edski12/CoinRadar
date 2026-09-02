@@ -273,6 +273,13 @@ body {
     color: var(--cr-ink);
 }
 
+.cr-chat-bubble.status {
+    align-self: center;
+    padding: 0.25rem;
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
 .cr-chat-form {
     display: flex;
     gap: 0.5rem;
