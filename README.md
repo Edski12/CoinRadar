@@ -26,23 +26,3 @@ API Gateway/Lambda handler for the AI chat widget.
 Independently deployable Lambda functions for news.
 
 - Handle news display, scheduled classification, SNS publishing, and user notification matching.
-
-## Setup
-
-### Local PHP / MySQL
-
-1. Start Apache and MySQL in XAMPP.
-2. Import `database/schema.sql` in phpMyAdmin, or run `mysql -u root < database/schema.sql`.
-3. Update `config/database.php` if your MySQL credentials differ from XAMPP's defaults.
-4. Open `http://localhost/CoinRadar/`.
-
-### Google Sign-In
-
-1. Create an OAuth 2.0 Web application client in [Google Cloud Console](https://console.cloud.google.com/).
-2. Add this Authorized redirect URI exactly: `http://localhost/CoinRadar/auth/google-callback.php`.
-3. Put the client ID and client secret in `config/google.php`.
-
-### AI Service
-
-Set `COINRADAR_AI_URL` if the AI service isn't running at `http://127.0.0.1:3000`. Optional overrides: `COINRADAR_AI_TIMEOUT_SECONDS` (default 120s) and `OLLAMA_MAX_TOKENS` (default 300).
-
