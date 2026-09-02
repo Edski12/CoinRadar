@@ -25,51 +25,61 @@ async function fetchChartData(symbol) {
 }
 
 async function renderCharts(symbols) {
-  for (const symbol of symbols) {
-    try {
-      const chartData = await fetchChartData(symbol);
-      const canvas = document.getElementById(`chart-${symbol}`);
-      if (!canvas) continue;
+  const batchSize = 8;
 
-      const closes = chartData.map((item) => item.close);
-      const minPrice = Math.min(...closes);
-      const maxPrice = Math.max(...closes);
-      const isPositive = closes[closes.length - 1] >= closes[0];
+  for (let index = 0; index < symbols.length; index += batchSize) {
+    const batch = symbols.slice(index, index + batchSize);
+    await Promise.all(
+      batch.map(async (symbol) => {
+        try {
+          const chartData = await fetchChartData(symbol);
+          const canvas = document.getElementById(`chart-${symbol}`);
+          if (!canvas) return;
 
-      chartInstances[symbol]?.destroy();
-      chartInstances[symbol] = new Chart(canvas, {
-        type: "line",
-        data: {
-          labels: chartData.map((item) => item.time),
-          datasets: [
-            {
-              label: symbol,
-              data: closes,
-              borderColor: isPositive ? "#16a34a" : "#dc2626",
-              borderWidth: 2,
-              fill: true,
-              backgroundColor: isPositive
-                ? "rgba(22, 163, 74, 0.1)"
-                : "rgba(220, 38, 38, 0.1)",
-              tension: 0.3,
-              pointRadius: 0,
-              pointHoverRadius: 0,
+          const closes = chartData.map((item) => item.close);
+          const minPrice = Math.min(...closes);
+          const maxPrice = Math.max(...closes);
+          const isPositive = closes[closes.length - 1] >= closes[0];
+
+          chartInstances[symbol]?.destroy();
+          chartInstances[symbol] = new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: chartData.map((item) => item.time),
+              datasets: [
+                {
+                  label: symbol,
+                  data: closes,
+                  borderColor: isPositive ? "#16a34a" : "#dc2626",
+                  borderWidth: 2,
+                  fill: true,
+                  backgroundColor: isPositive
+                    ? "rgba(22, 163, 74, 0.1)"
+                    : "rgba(220, 38, 38, 0.1)",
+                  tension: 0.3,
+                  pointRadius: 0,
+                  pointHoverRadius: 0,
+                },
+              ],
             },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { min: minPrice * 0.999, max: maxPrice * 1.001, display: false },
-            x: { display: false },
-          },
-        },
-      });
-    } catch (error) {
-      // A tiny sparkline should never block the main table.
-    }
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: {
+                  min: minPrice * 0.999,
+                  max: maxPrice * 1.001,
+                  display: false,
+                },
+                x: { display: false },
+              },
+            },
+          });
+        } catch (error) {
+        }
+      }),
+    );
   }
 }
 
@@ -80,8 +90,9 @@ function renderCoins(list) {
     return;
   }
 
-  tableBody.innerHTML = list
-    .slice(0, 80)
+  const displayedCoins = list.slice(0, 80);
+
+  tableBody.innerHTML = displayedCoins
     .map(
       (item) => `
         <tr class="coin-row" data-symbol="${item.symbol}">
@@ -102,7 +113,7 @@ function renderCoins(list) {
     });
   });
 
-  renderCharts(list.slice(0, 20).map((item) => item.symbol));
+  renderCharts(displayedCoins.map((item) => item.symbol));
 }
 
 async function loadCoins() {

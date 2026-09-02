@@ -63,6 +63,21 @@ body {
     z-index: 1050;
 }
 
+@media (min-width: 992px) {
+    .coins-sidebar {
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        height: 100vh;
+    }
+
+    .coins-sidebar > aside {
+        height: 100vh;
+        min-height: 100vh !important;
+        overflow-y: auto;
+    }
+}
+
 .coin-row {
     cursor: pointer;
 }
