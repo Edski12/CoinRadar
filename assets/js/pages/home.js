@@ -40,7 +40,11 @@ function renderPulse(items) {
 
 function renderTrending(payload) {
   const rawTopics =
-    payload?.topics?.topics || payload?.topics?.items || payload?.topics || [];
+    payload?.topics?.trending ||
+    payload?.topics?.topics ||
+    payload?.topics?.items ||
+    payload?.topics ||
+    [];
   const topics = Array.isArray(rawTopics) ? rawTopics.slice(0, 8) : [];
 
   trendingTopics.innerHTML = topics.length
@@ -54,17 +58,16 @@ function renderTrending(payload) {
 }
 
 function renderFearGreed(payload) {
+  const current = payload?.index?.current || payload?.index;
   const index =
-    payload?.index?.value ??
-    payload?.index?.score ??
-    payload?.index?.data?.value ??
-    payload?.index;
+    current?.value ?? current?.score ?? current?.data?.value ?? current;
   const label =
-    payload?.index?.classification ||
-    payload?.index?.label ||
-    payload?.index?.data?.classification ||
+    current?.valueClassification ||
+    current?.classification ||
+    current?.label ||
+    current?.data?.classification ||
     "";
-  fearGreedValue.textContent = index
+  fearGreedValue.textContent = index !== undefined && index !== null
     ? `${index}${label ? " - " + label : ""}`
     : "Unavailable";
 }

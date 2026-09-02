@@ -75,7 +75,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script type="module" src="assets/js/shared/bootstrap.js?v=20260902-1"></script>
-    <script type="module" src="assets/js/pages/home.js"></script>
+    <script type="module" src="assets/js/pages/home.js?v=20260902-1"></script>
 </body>
 
 </html>
