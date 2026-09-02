@@ -54,7 +54,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
-    <script type="module" src="../assets/js/shared/bootstrap.js"></script>
+    <script type="module" src="../assets/js/shared/bootstrap.js?v=20260902-1"></script>
     <script type="module" src="../assets/js/pages/coins.js"></script>
 </body>
 

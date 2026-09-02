@@ -65,7 +65,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
-    <script type="module" src="../assets/js/shared/bootstrap.js"></script>
+    <script type="module" src="../assets/js/shared/bootstrap.js?v=20260902-1"></script>
     <script type="module" src="../assets/js/pages/coinDetails.js"></script>
 </body>
 

@@ -1,4 +1,4 @@
-import { askCompanion, getChatHistory } from "./api.js";
+import { askCompanion, getChatHistory } from "./api.js?v=20260902-1";
 
 function getPageContext() {
   const params = new URLSearchParams(window.location.search);
