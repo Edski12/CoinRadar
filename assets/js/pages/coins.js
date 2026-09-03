@@ -9,8 +9,13 @@ import {
 
 const tableBody = document.getElementById("coinsTableBody");
 const searchInput = document.getElementById("coinSearch");
+const changeSortButton = document.getElementById("changeSortButton");
+const changeSortHeader = document.getElementById("changeSortHeader");
+const changeSortIcon = document.getElementById("changeSortIcon");
 const chartInstances = {};
 let allCoins = [];
+let movementSort = null;
+let renderVersion = 0;
 
 async function fetchChartData(symbol) {
   const klines = await getKlines(symbol, "1h", 24);
@@ -24,15 +29,17 @@ async function fetchChartData(symbol) {
   }));
 }
 
-async function renderCharts(symbols) {
+async function renderCharts(symbols, version) {
   const batchSize = 8;
 
   for (let index = 0; index < symbols.length; index += batchSize) {
+    if (version !== renderVersion) return;
     const batch = symbols.slice(index, index + batchSize);
     await Promise.all(
       batch.map(async (symbol) => {
         try {
           const chartData = await fetchChartData(symbol);
+          if (version !== renderVersion) return;
           const canvas = document.getElementById(`chart-${symbol}`);
           if (!canvas) return;
 
@@ -84,6 +91,11 @@ async function renderCharts(symbols) {
 }
 
 function renderCoins(list) {
+  const version = ++renderVersion;
+  Object.keys(chartInstances).forEach((symbol) => {
+    chartInstances[symbol].destroy();
+    delete chartInstances[symbol];
+  });
   if (!list.length) {
     tableBody.innerHTML =
       '<tr><td colspan="5" class="text-center text-muted">No matching coins found.</td></tr>';
@@ -98,7 +110,7 @@ function renderCoins(list) {
         <tr class="coin-row" data-symbol="${item.symbol}">
             <td><strong>${item.symbol}</strong></td>
             <td>${formatCurrency(item.lastPrice)}</td>
-            <td class="d-none d-md-table-cell ${changeClass(item.priceChangePercent)}">${formatPercent(item.priceChangePercent)}</td>
+            <td class="${changeClass(item.priceChangePercent)}">${formatPercent(item.priceChangePercent)}</td>
             <td class="d-none d-md-table-cell">${formatNumber(item.volume)}</td>
             <td class="sparkline-cell"><canvas id="chart-${item.symbol}" height="30"></canvas></td>
         </tr>
@@ -113,24 +125,53 @@ function renderCoins(list) {
     });
   });
 
-  renderCharts(displayedCoins.map((item) => item.symbol));
+  renderCharts(displayedCoins.map((item) => item.symbol), version);
+}
+
+function renderFilteredCoins() {
+  const query = searchInput.value.trim().toLowerCase();
+  const coins = allCoins.filter((item) => item.symbol.toLowerCase().includes(query));
+  if (movementSort) {
+    const direction = movementSort === "descending" ? -1 : 1;
+    coins.sort((a, b) => {
+      const aMovement = Number(a.priceChangePercent);
+      const bMovement = Number(b.priceChangePercent);
+      // Missing changes stay at the bottom in either direction.
+      if (!Number.isFinite(aMovement)) return Number.isFinite(bMovement) ? 1 : a.symbol.localeCompare(b.symbol);
+      if (!Number.isFinite(bMovement)) return -1;
+      return direction * (aMovement - bMovement) || a.symbol.localeCompare(b.symbol);
+    });
+  }
+  // Rank all matching coins before applying the 80-row display limit.
+  renderCoins(coins);
 }
 
 async function loadCoins() {
   try {
     allCoins = await getAllTickers();
-    renderCoins(allCoins);
+    renderFilteredCoins();
   } catch (error) {
     tableBody.innerHTML =
       '<tr><td colspan="5" class="text-center text-danger">Failed to load Binance data.</td></tr>';
   }
 }
 
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.toLowerCase();
-  renderCoins(
-    allCoins.filter((item) => item.symbol.toLowerCase().includes(query)),
-  );
+searchInput.addEventListener("input", renderFilteredCoins);
+
+changeSortButton.addEventListener("click", () => {
+  movementSort = movementSort === null ? "descending"
+    : movementSort === "descending" ? "ascending" : null;
+  const label = movementSort === "descending"
+    ? "Gainers first. Click for losers first."
+    : movementSort === "ascending"
+      ? "Losers first. Click for default order."
+      : "Default order. Click for gainers first.";
+  changeSortHeader.setAttribute("aria-sort", movementSort || "none");
+  changeSortIcon.textContent = movementSort === "descending" ? "↓ Gainers"
+    : movementSort === "ascending" ? "↑ Losers" : "↕";
+  changeSortButton.setAttribute("aria-label", `24h Change: ${label}`);
+  changeSortButton.setAttribute("title", label);
+  renderFilteredCoins();
 });
 
 loadCoins();

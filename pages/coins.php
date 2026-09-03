@@ -35,7 +35,14 @@
                             <tr>
                                 <th>Symbol</th>
                                 <th>Price</th>
-                                <th class="d-none d-md-table-cell">24h Change</th>
+                                <th id="changeSortHeader" scope="col" aria-sort="none">
+                                    <button id="changeSortButton" type="button"
+                                        class="btn btn-link p-0 fw-bold text-reset text-decoration-none text-nowrap"
+                                        title="Default order. Click for gainers first."
+                                        aria-label="24h Change: Default order. Click for gainers first.">
+                                        24h Change <span id="changeSortIcon" aria-hidden="true">↕</span>
+                                    </button>
+                                </th>
                                 <th class="d-none d-md-table-cell">24h Volume</th>
                                 <th>24h Chart</th>
                             </tr>
@@ -55,7 +62,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script type="module" src="../assets/js/shared/bootstrap.js?v=20260902-1"></script>
-    <script type="module" src="../assets/js/pages/coins.js?v=20260902-2"></script>
+    <script type="module" src="../assets/js/pages/coins.js?v=20260903-2"></script>
 </body>
 
 </html>
