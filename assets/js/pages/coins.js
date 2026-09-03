@@ -12,10 +12,17 @@ const searchInput = document.getElementById("coinSearch");
 const changeSortButton = document.getElementById("changeSortButton");
 const changeSortHeader = document.getElementById("changeSortHeader");
 const changeSortIcon = document.getElementById("changeSortIcon");
+const pagination = document.getElementById("coinsPagination");
+const pageList = document.getElementById("coinsPageList");
+const coinsTable = document.getElementById("coinsTable");
+const loadError = document.getElementById("coinsLoadError");
+const pageSize = 80;
 const chartInstances = {};
 let allCoins = [];
 let movementSort = null;
 let renderVersion = 0;
+let currentPage = 1;
+let totalPages = 0;
 
 async function fetchChartData(symbol) {
   const klines = await getKlines(symbol, "1h", 24);
@@ -90,19 +97,46 @@ async function renderCharts(symbols, version) {
   }
 }
 
+function renderPagination() {
+  pagination.hidden = totalPages === 0;
+  const arrow = (page, label, symbol, disabled) => `
+    <li class="page-item${disabled ? " disabled" : ""}">
+      <button type="button" class="page-link" data-page="${page}" aria-label="${label}"${disabled ? " disabled" : ""}>
+        <span aria-hidden="true">${symbol}</span>
+      </button>
+    </li>`;
+  const numbers = Array.from({ length: totalPages }, (_, index) => {
+    const page = index + 1;
+    const active = page === currentPage;
+    return `<li class="page-item${active ? " active" : ""}">
+      <button type="button" class="page-link" data-page="${page}" aria-label="Page ${page}"${active ? ' aria-current="page"' : ""}>${page}</button>
+    </li>`;
+  }).join("");
+  const markup = arrow(currentPage - 1, "Previous page", "&lsaquo;", currentPage <= 1)
+    + numbers + arrow(currentPage + 1, "Next page", "&rsaquo;", currentPage >= totalPages);
+  // Keep keyboard focus intact when a price refresh leaves the pages unchanged.
+  if (pageList.dataset.markup !== markup) {
+    pageList.innerHTML = markup;
+    pageList.dataset.markup = markup;
+  }
+}
+
 function renderCoins(list) {
   const version = ++renderVersion;
   Object.keys(chartInstances).forEach((symbol) => {
     chartInstances[symbol].destroy();
     delete chartInstances[symbol];
   });
+  totalPages = Math.ceil(list.length / pageSize);
+  currentPage = Math.min(currentPage, Math.max(1, totalPages));
+  const start = (currentPage - 1) * pageSize;
+  const displayedCoins = list.slice(start, start + pageSize);
+  renderPagination();
   if (!list.length) {
     tableBody.innerHTML =
       '<tr><td colspan="5" class="text-center text-muted">No matching coins found.</td></tr>';
     return;
   }
-
-  const displayedCoins = list.slice(0, 80);
 
   tableBody.innerHTML = displayedCoins
     .map(
@@ -142,23 +176,47 @@ function renderFilteredCoins() {
       return direction * (aMovement - bMovement) || a.symbol.localeCompare(b.symbol);
     });
   }
-  // Rank all matching coins before applying the 80-row display limit.
+  // Rank all matching coins before selecting the current page.
   renderCoins(coins);
 }
 
 async function loadCoins() {
   try {
     allCoins = await getAllTickers();
+    loadError.hidden = true;
     renderFilteredCoins();
   } catch (error) {
-    tableBody.innerHTML =
-      '<tr><td colspan="5" class="text-center text-danger">Failed to load Binance data.</td></tr>';
+    loadError.textContent = allCoins.length
+      ? "Unable to refresh Binance data. Showing the last loaded prices."
+      : "Failed to load Binance data. Retrying automatically.";
+    loadError.hidden = false;
+    if (!allCoins.length) {
+      renderCoins([]);
+      tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No coin data available.</td></tr>';
+    }
   }
 }
 
-searchInput.addEventListener("input", renderFilteredCoins);
+searchInput.addEventListener("input", () => {
+  currentPage = 1;
+  renderFilteredCoins();
+});
+
+function changePage(page) {
+  if (!Number.isInteger(page) || page < 1 || page > totalPages || page === currentPage) return;
+  currentPage = page;
+  renderFilteredCoins();
+  coinsTable.scrollIntoView({ block: "start" });
+  coinsTable.focus({ preventScroll: true });
+}
+
+pageList.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-page]");
+  if (button && !button.disabled) changePage(Number(button.dataset.page));
+});
 
 changeSortButton.addEventListener("click", () => {
+  currentPage = 1;
   movementSort = movementSort === null ? "descending"
     : movementSort === "descending" ? "ascending" : null;
   const label = movementSort === "descending"

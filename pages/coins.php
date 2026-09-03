@@ -29,8 +29,9 @@
                         autocomplete="off">
                 </div>
 
+                <p id="coinsLoadError" class="small text-danger" role="status" hidden></p>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table id="coinsTable" class="table table-hover align-middle" tabindex="-1">
                         <thead>
                             <tr>
                                 <th>Symbol</th>
@@ -54,6 +55,9 @@
                         </tbody>
                     </table>
                 </div>
+                <nav id="coinsPagination" aria-label="Coin pages" class="mt-3" hidden>
+                    <ul id="coinsPageList" class="pagination justify-content-center flex-wrap gap-1 mb-0"></ul>
+                </nav>
             </main>
         </div>
     </div>
@@ -62,7 +66,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script type="module" src="../assets/js/shared/bootstrap.js?v=20260902-1"></script>
-    <script type="module" src="../assets/js/pages/coins.js?v=20260903-2"></script>
+    <script type="module" src="../assets/js/pages/coins.js?v=20260903-4"></script>
 </body>
 
 </html>
