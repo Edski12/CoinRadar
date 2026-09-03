@@ -23,6 +23,15 @@ CREATE TABLE watchlist_items (
     CONSTRAINT fk_watchlist_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE chart_drawings (
+    user_id BIGINT UNSIGNED NOT NULL,
+    symbol VARCHAR(30) NOT NULL,
+    drawings_json MEDIUMTEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, symbol),
+    CONSTRAINT fk_chart_drawings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE chat_messages (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
