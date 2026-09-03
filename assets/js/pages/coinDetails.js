@@ -1,14 +1,34 @@
 import { getKlines, getTicker } from "../shared/api.js";
 import { MARKET_CONFIG } from "../shared/config.js";
-import { formatCurrency, formatPercent } from "../shared/format.js";
+import { formatCurrency, formatPercent, normalizeSymbol } from "../shared/format.js";
+import { createDrawingStore } from "../shared/drawings.js";
 
 const params = new URLSearchParams(window.location.search);
-const symbol = params.get("symbol") || "BTCUSDT";
+const symbol = normalizeSymbol(params.get("symbol") || "BTCUSDT");
 const title = document.getElementById("coinTitle");
 const priceText = document.getElementById("coinPrice");
 const timeframeButtons = document.querySelectorAll(".timeframe-btn");
 const toolButtons = document.querySelectorAll(".tool-btn");
 let currentInterval = "1m";
+
+// Rectangle is not included among KLineCharts v9's built-in overlays.
+klinecharts.registerOverlay({
+  name: "rectangle",
+  totalStep: 3,
+  needDefaultPointFigure: true,
+  needDefaultXAxisFigure: true,
+  needDefaultYAxisFigure: true,
+  createPointFigures: ({ coordinates }) => coordinates.length === 2 ? [{
+    type: "rect",
+    attrs: {
+      x: Math.min(coordinates[0].x, coordinates[1].x),
+      y: Math.min(coordinates[0].y, coordinates[1].y),
+      width: Math.abs(coordinates[1].x - coordinates[0].x),
+      height: Math.abs(coordinates[1].y - coordinates[0].y),
+    },
+    styles: { style: "stroke" },
+  }] : [],
+});
 
 const chart = klinecharts.init("priceChart");
 chart.setStyles({
@@ -23,6 +43,23 @@ chart.setStyles({
     },
   },
 });
+
+const drawingStatus = document.getElementById("drawingStatus");
+const retryDrawings = document.getElementById("retryDrawings");
+const drawingStore = createDrawingStore({
+  chart,
+  symbol,
+  user: window.COINRADAR_USER,
+  csrf: window.COINRADAR_CSRF,
+  onStatus(message, retry) {
+    drawingStatus.textContent = message;
+    retryDrawings.hidden = !retry;
+  },
+  onReady(ready) {
+    toolButtons.forEach((button) => { button.disabled = !ready && button.dataset.tool !== "cursor"; });
+  },
+});
+retryDrawings.addEventListener("click", () => drawingStore.retry());
 
 async function fetchChartData(interval = "1m") {
   return getKlines(symbol, interval, 1000);
@@ -39,6 +76,7 @@ async function loadCoinData() {
     priceText.textContent = `${formatCurrency(ticker.lastPrice)} - ${formatPercent(ticker.priceChangePercent)} (24h)`;
     chart.applyNewData(klines);
     chart.resize();
+    await drawingStore.load();
   } catch (error) {
     title.textContent = symbol;
     priceText.textContent = "Unable to load chart data.";
@@ -60,13 +98,13 @@ toolButtons.forEach((button) => {
     const tool = button.dataset.tool;
 
     if (tool === "clear") {
-      chart.removeOverlay();
+      drawingStore.clear();
       return;
     }
 
     toolButtons.forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
-    if (tool !== "cursor") chart.createOverlay(tool);
+    if (tool !== "cursor") drawingStore.create(tool);
   });
 });
 
