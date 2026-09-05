@@ -20,7 +20,7 @@ function setup(t, handler, user = { id: 7 }) {
   let ready;
   t.mock.method(globalThis, "fetch", async (url, options = {}) => {
     requests.push({ url, ...options });
-    return handler(url, options);
+    return handler(url, options);chat
   });
   const oldWindow = globalThis.window;
   globalThis.window = {

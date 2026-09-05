@@ -2,6 +2,7 @@ import { getKlines, getTicker } from "../shared/api.js";
 import { MARKET_CONFIG } from "../shared/config.js";
 import { formatCurrency, formatPercent, normalizeSymbol } from "../shared/format.js";
 import { createDrawingStore } from "../shared/drawings.js";
+import { createMeasurementOverlay } from "../shared/measurement.js?v=20260905-2";
 
 const params = new URLSearchParams(window.location.search);
 const symbol = normalizeSymbol(params.get("symbol") || "BTCUSDT");
@@ -29,6 +30,7 @@ klinecharts.registerOverlay({
     styles: { style: "stroke" },
   }] : [],
 });
+klinecharts.registerOverlay(createMeasurementOverlay());
 
 const chart = klinecharts.init("priceChart");
 chart.setStyles({
