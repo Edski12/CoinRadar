@@ -7,6 +7,7 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
   let revision = 0;
   let savedRevision = 0;
   let suppressEvents = false;
+  let selectedOverlayId = null;
 
   function status(message, retry = false) {
     onStatus(message, retry);
@@ -70,11 +71,34 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
   const callbacks = {
     onDrawEnd: remember,
     onPressedMoveEnd: remember,
+    onClick: ({ overlay }) => {
+      selectedOverlayId = overlay.id;
+      return false;
+    },
+    onSelected: ({ overlay }) => {
+      selectedOverlayId = overlay.id;
+      return false;
+    },
+    onDeselected: ({ overlay }) => {
+      if (selectedOverlayId === overlay.id) selectedOverlayId = null;
+      return false;
+    },
     onRemoved: ({ overlay }) => {
+      if (selectedOverlayId === overlay.id) selectedOverlayId = null;
       if (!suppressEvents && drawings.delete(overlay.id)) changed();
       return false;
     },
   };
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "Backspace" && event.key !== "Delete") return;
+    const target = event.target;
+    if (target?.isContentEditable || target?.closest?.("input, textarea, select")) return;
+    if (!ready || !selectedOverlayId) return;
+
+    event.preventDefault();
+    chart.removeOverlay({ id: selectedOverlayId });
+  });
 
   async function load() {
     if (ready || loading) return;
@@ -103,6 +127,7 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
       suppressEvents = true;
       chart.removeOverlay();
       drawings.clear();
+      selectedOverlayId = null;
       status(error.message, true);
     } finally {
       suppressEvents = false;
@@ -131,6 +156,7 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
       suppressEvents = true;
       chart.removeOverlay();
       drawings.clear();
+      selectedOverlayId = null;
       suppressEvents = false;
       changed();
     },

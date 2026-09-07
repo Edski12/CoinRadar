@@ -37,9 +37,14 @@ function setup(t, handler, user = { id: 7 }) {
       overlays.set(overlay.id ?? "new", overlay);
       return overlay.id ?? "new";
     },
-    removeOverlay() {
-      for (const overlay of overlays.values()) overlay.onRemoved({ overlay });
-      overlays.clear();
+    removeOverlay(filter) {
+      const matches = filter?.id
+        ? [...overlays.entries()].filter(([, overlay]) => overlay.id === filter.id)
+        : [...overlays.entries()];
+      for (const [key, overlay] of matches) {
+        overlay.onRemoved({ overlay });
+        overlays.delete(key);
+      }
     },
   };
   const store = createDrawingStore({
@@ -158,6 +163,48 @@ test("individual deletion persists without resurrecting the removed drawing", as
   overlay.onRemoved({ overlay });
   await tick();
   assert.deepEqual(JSON.parse(ctx.requests.at(-1).body).drawings, []);
+});
+
+test("Backspace deletes only the drawing most recently clicked", async (t) => {
+  const secondLine = { ...line(), id: "line-2" };
+  const ctx = setup(t, (_, options) =>
+    ok(options.method ? { ok: true } : { drawings: [line(), secondLine] }),
+  );
+  await ctx.store.load();
+
+  ctx.overlays.get("line-2").onClick({ overlay: ctx.overlays.get("line-2") });
+  let prevented = false;
+  ctx.events.keydown({
+    key: "Backspace",
+    target: null,
+    preventDefault() { prevented = true; },
+  });
+  await tick();
+
+  assert.equal(prevented, true);
+  assert.equal(ctx.overlays.has("line-1"), true);
+  assert.equal(ctx.overlays.has("line-2"), false);
+  assert.deepEqual(
+    JSON.parse(ctx.requests.at(-1).body).drawings.map(({ id }) => id),
+    ["line-1"],
+  );
+});
+
+test("Backspace does not delete a drawing while typing in a form control", async (t) => {
+  const ctx = setup(t, (_, options) =>
+    ok(options.method ? { ok: true } : { drawings: [line()] }),
+  );
+  await ctx.store.load();
+  const overlay = ctx.overlays.get("line-1");
+  overlay.onSelected({ overlay });
+
+  ctx.events.keydown({
+    key: "Backspace",
+    target: { isContentEditable: false, closest: () => ({}) },
+    preventDefault: () => assert.fail("Typing should not be prevented"),
+  });
+
+  assert.equal(ctx.overlays.has("line-1"), true);
 });
 
 test("guest drawings do not read or write any account", async (t) => {
