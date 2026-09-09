@@ -113,7 +113,12 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
       const data = await response.json();
       if (!Array.isArray(data.drawings)) throw new Error("Couldn't load drawings. Please retry.");
       suppressEvents = true;
-      for (const drawing of data.drawings) {
+      for (const savedDrawing of data.drawings) {
+        // Migrate the built-in Fibonacci overlay, whose levels extend across the
+        // chart, to CoinRadar's finite-width version.
+        const drawing = savedDrawing.name === "fibonacciLine"
+          ? { ...savedDrawing, name: "finiteFibonacciLine" }
+          : savedDrawing;
         if (!chart.createOverlay({ ...drawing, ...callbacks })) {
           throw new Error("Couldn't restore drawings. Reload the page to retry.");
         }
@@ -150,6 +155,20 @@ export function createDrawingStore({ chart, symbol, user, csrf, onStatus, onRead
     retry: () => ready ? save() : load(),
     create(name) {
       if (ready) chart.createOverlay({ name, ...callbacks });
+    },
+    refresh() {
+      if (!ready) return;
+      suppressEvents = true;
+      chart.removeOverlay();
+      selectedOverlayId = null;
+      for (const drawing of drawings.values()) {
+        // Recreate from timestamp-only points after chart data changes. KLineCharts
+        // otherwise keeps stale candle indices from the previous timeframe and can
+        // push an endpoint to the edge of the new chart.
+        const points = drawing.points.map(({ timestamp, value }) => ({ timestamp, value }));
+        chart.createOverlay({ ...drawing, points, ...callbacks });
+      }
+      suppressEvents = false;
     },
     clear() {
       if (!ready) return;

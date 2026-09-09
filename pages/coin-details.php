@@ -46,7 +46,7 @@
                                 class="fas fa-square"></i></button>
                         <button class="tool-btn" data-tool="measurement" title="Measure price and time"><i
                                 class="fas fa-ruler-combined"></i></button>
-                        <button class="tool-btn" data-tool="fibonacciLine" title="Fib Retracement"><i
+                        <button class="tool-btn" data-tool="finiteFibonacciLine" title="Fib Retracement"><i
                                 class="fas fa-wave-square"></i></button>
                         <div class="tool-divider"></div>
                         <button class="tool-btn danger" data-tool="clear" title="Clear Drawings"><i
@@ -72,7 +72,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
     <script type="module" src="../assets/js/shared/bootstrap.js?v=20260902-1"></script>
-    <script type="module" src="../assets/js/pages/coinDetails.js?v=20260907-1"></script>
+    <script type="module" src="../assets/js/pages/coinDetails.js?v=20260909-1"></script>
 </body>
 
 </html>

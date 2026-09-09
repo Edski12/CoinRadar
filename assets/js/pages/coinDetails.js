@@ -1,7 +1,8 @@
 import { getKlines, getTicker } from "../shared/api.js";
 import { MARKET_CONFIG } from "../shared/config.js";
 import { formatCurrency, formatPercent, normalizeSymbol } from "../shared/format.js";
-import { createDrawingStore } from "../shared/drawings.js?v=20260907-1";
+import { createDrawingStore } from "../shared/drawings.js?v=20260909-2";
+import { createFiniteFibonacciOverlay } from "../shared/fibonacci.js?v=20260909-1";
 import { createMeasurementOverlay } from "../shared/measurement.js?v=20260905-2";
 
 const params = new URLSearchParams(window.location.search);
@@ -31,6 +32,7 @@ klinecharts.registerOverlay({
   }] : [],
 });
 klinecharts.registerOverlay(createMeasurementOverlay());
+klinecharts.registerOverlay(createFiniteFibonacciOverlay());
 
 const chart = klinecharts.init("priceChart");
 chart.setStyles({
@@ -92,6 +94,7 @@ timeframeButtons.forEach((button) => {
     button.classList.add("active");
     chart.applyNewData(await fetchChartData(currentInterval));
     chart.resize();
+    drawingStore.refresh();
   });
 });
 

@@ -217,3 +217,30 @@ test("guest drawings do not read or write any account", async (t) => {
   assert.equal(ctx.requests.length, 0);
   assert.equal(ctx.isReady(), true);
 });
+
+test("reanchors every drawing by timestamp after a timeframe change", async (t) => {
+  const secondLine = { ...line(), id: "line-2" };
+  const ctx = setup(t, (_, options) =>
+    ok(options.method ? { ok: true } : { drawings: [line(), secondLine] }),
+  );
+
+  await ctx.store.load();
+  ctx.overlays.get("line-1").points[1].dataIndex = 999;
+  ctx.store.refresh();
+
+  assert.deepEqual([...ctx.overlays.keys()], ["line-1", "line-2"]);
+  assert.deepEqual(ctx.overlays.get("line-1").points[1], {
+    timestamp: 160000,
+    value: 60,
+  });
+  assert.equal(ctx.requests.length, 1, "changing timeframe must not save or delete drawings");
+});
+
+test("restores legacy fibonacci drawings with finite-width rendering", async (t) => {
+  const fibonacci = { ...line(), id: "fib-1", name: "fibonacciLine" };
+  const ctx = setup(t, () => ok({ drawings: [fibonacci] }));
+
+  await ctx.store.load();
+
+  assert.equal(ctx.overlays.get("fib-1").name, "finiteFibonacciLine");
+});

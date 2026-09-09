@@ -58,7 +58,8 @@ if ($method === 'POST') {
         drawing_error(400, 'A maximum of 200 drawings can be saved per coin.');
     }
     $pointCounts = ['straightLine' => 2, 'horizontalStraightLine' => 1,
-        'verticalStraightLine' => 1, 'rectangle' => 2, 'fibonacciLine' => 2];
+        'verticalStraightLine' => 1, 'rectangle' => 2, 'fibonacciLine' => 2,
+        'finiteFibonacciLine' => 2];
     $ids = [];
     foreach ($submitted as $drawing) {
         if (!is_array($drawing) || !is_string($drawing['id'] ?? null)
