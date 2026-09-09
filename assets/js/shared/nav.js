@@ -22,7 +22,6 @@ function navLinks(extraClass = "") {
       (item) => `
         <li class="nav-item mb-2">
             <a class="nav-link text-dark ${extraClass}" href="${pageHref(item.href)}" data-nav="${item.key}">
-                <span class="nav-indicator" aria-hidden="true">&larr;</span>
                 <span>${item.label}</span>
             </a>
         </li>
@@ -62,9 +61,9 @@ export function renderNav() {
                     </button></div>
                 </div>
                 <div class="collapse" id="sidebarMenu">
-                    <div class="d-flex flex-column min-vh-100 p-3">
+                    <div class="d-flex flex-column p-3">
                         <ul class="nav flex-column sidebar-nav">${navLinks("mobile-nav-link")}</ul>
-                        <div class="mt-auto pt-4">${authLinks()}</div>
+                        <div class="pt-2">${authLinks()}</div>
                     </div>
                 </div>
             </nav>
